@@ -33,6 +33,14 @@ class fwvip_i2c_ctrl_driver extends uvm_driver #(fwvip_i2c_xact);
     // no STOP: the core has already released the bus.
     virtual task execute(fwvip_i2c_xact t);
         bit ack, arb_lost;
+        // An ACKed read address hands SDA to the target until a byte is
+        // NACKed, so a read must move at least one byte: STOP or Sr
+        // straight after the address would never reach the bus.
+        foreach (t.seg[i])
+            if (t.seg[i].read && t.seg[i].data.size() == 0)
+                `uvm_fatal(get_type_name(), $sformatf(
+                    "segment %0d is a read of 0 bytes; an I2C read moves at least one: %s",
+                    i, t.convert2string()))
         t.status    = FWVIP_I2C_OK;
         t.nack_seg  = -1;
         t.nack_byte = -1;

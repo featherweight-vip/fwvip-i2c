@@ -97,11 +97,9 @@ From `fw-proto-i2c` (`fw.proto.i2c.xtor-sv`):
 
 The register macros bind each wrapper's `u_if`.
 
-Bus timing is set by parameters on the controller core,
-`i2c_controller_xtor_core`, counted in core clocks: `T_LOW` (4), `T_HIGH`
-(4), and `T_HD_STA`, `T_SU_STA`, `T_SU_STO`, `T_BUF` (2 each). The v1
-`i2c_controller_xtor` wrapper does not pass these parameters through, so a
-bench that uses the wrapper gets the defaults; to change the bus speed, scale
-the clock. The runtime `cfg_*` timing inputs proposed in design.md §5 are not
-implemented. The target core needs SCL low for at least 2 of its clocks (see
-{doc}`verification`).
+`i2c_controller_xtor` sets the bus timing with parameters, counted in core
+clocks: `T_LOW` (4), `T_HIGH` (4), and `T_HD_STA`, `T_SU_STA`, `T_SU_STO`,
+`T_BUF` (2 each). Every value down to 1 works: the target and monitor
+cores follow SCL low or high phases as short as one of their clocks. The
+runtime `cfg_*` timing inputs proposed in design.md §5 are not
+implemented, so the timing is fixed per instance.

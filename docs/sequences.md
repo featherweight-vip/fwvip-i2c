@@ -21,7 +21,11 @@ truncated after the NACKed byte. On arbitration loss it issues no STOP,
 because the core has already released the bus; the caller retries the whole
 transaction.
 
-Build one by hand with `add_write(addr, data)` and `add_read(addr, n)`.
+Build one by hand with `add_write(addr, data)` and `add_read(addr, n)`. A
+read segment must have `n ≥ 1`, and the driver rejects a zero-byte read
+with a fatal error. Once a target ACKs a read address, it owns SDA until
+the controller NACKs a byte, so a STOP or repeated START right after the
+address would never reach the bus.
 `convert2string()` prints it compactly; a trailing `~` marks a NACKed byte:
 
 ```text

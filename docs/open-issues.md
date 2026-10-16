@@ -8,13 +8,13 @@ What the current kit and VIP do not do, and where each limitation shows up:
   the start of another data byte (see the header of
   `i2c_target_xtor_core.sv`). `fwvip_i2c_xact` models multi-segment
   transactions, but nothing exercises them. Use write + STOP + read instead.
-- **Target timing minimum.** The target core misses a bit when SCL is low
-  for only one of its clocks after an ACK. The kit's formal harness found
-  this; see {doc}`verification`. A fix to the core, or a documented minimum
-  oversampling ratio, is still to be decided.
-- **Bus timing is fixed per wrapper.** The controller core's `T_*`
-  parameters are not passed through `i2c_controller_xtor`, and the runtime
-  `cfg_*` timing of design.md §5 is not implemented (see {doc}`reference`).
+- **Bus timing is fixed per instance.** The controller's `T_*` parameters
+  set it; the runtime `cfg_*` timing of design.md §5 is not implemented
+  (see {doc}`reference`).
+- **No clock synchronization during the high phase.** The controller counts
+  `T_HIGH` without watching SCL, so a device that pulls SCL low during the
+  high phase (a slow target, or another controller) does not restart its
+  low count as UM10204 §3.1.7 requires.
 - **10-bit addressing** is not implemented by the cores. The target config
   NACKs 10-bit addresses.
 - **Arbitration loss is not reported by the monitor core**, so the monitor

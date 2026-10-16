@@ -46,6 +46,7 @@ push.
 | Component | Covers |
 |---|---|
 | `i2c_proto_tb` | the required back-to-back sim: controller and target transactors on one bus |
+| `i2c_proto_fast_tb` | the same case with every controller timing phase at 1 clock, the fastest bus the cores support |
 | `arb/i2c_arb_tb` | two controllers start at the same time against one target; the one addressing 0x60 must lose arbitration to the one addressing 0x10, which is unaffected (design.md §8 issue 1) |
 | `formal/i2c_proto_fv` | a BMC of a controller core and a target core on a real open-drain bus; invariants and cover goals in `tests/formal/PROPERTIES.md` (design.md §8 issue 2) |
 
@@ -57,12 +58,21 @@ written byte's MSB, so a write ending in a byte with MSB 0 produced a
 spurious START/STOP pair. The bug is fixed in the kit, and `i2c_proto_tb`
 now ends a write with 0x3C, so its STOP count catches a regression.
 
-Open, from the kit's formal harness: **the target core misses bit 0 after
-an ACK when SCL is low for only one of its clocks.** The BMC fails at step 68
-with all timing parameters at 1 and passes at `T_LOW = 2`. The sims and this
-bench run at `T_LOW = 4`, which hides the bug. A fix (in the target core) or a
-documented minimum oversampling ratio is still to be decided; see
-`PROPERTIES.md`.
+The kit's formal harness found that **the target core lost bit 7 of the
+byte after an ACK when SCL was low for only one of its clocks.** After the
+ACK, the target sampled the same low phase twice: once to see the ACK end,
+and again to start the next byte. With a 1-clock low, the second sample
+already saw SCL high, so the target came in one bit late. The read path had
+the same bug, and so did the monitor core. All three now start the next byte
+on the fall itself, so a 1-clock low or high phase is enough. Two
+regressions guard the fix:
+
+- `i2c_proto_fast_tb` runs the back-to-back sim at 1-clock timing. It
+  starts with a read, so a broken read path can't be hidden by a broken
+  write.
+- The formal harness gained a read-direction integrity check, invariant 7.
+
+This bench runs at the default timing (`T_LOW = 4`), which hid the bug.
 
 ## Not covered yet
 

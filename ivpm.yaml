@@ -18,7 +18,7 @@ package:
       url: https://github.com/featherweight-hdl/fw-hdl.git
       dep-set: default
     - name: fw-proto-i2c
-      url: ssh://git@a9550.perch-char.ts.net:222/featherweight-ip/fw-proto-i2c.git
+      url: https://github.com/featherweight-ip/fw-proto-i2c.git
       dep-set: use
     - name: fwvip-core
       url: https://github.com/featherweight-vip/fwvip-core.git

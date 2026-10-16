@@ -110,9 +110,12 @@ Plusargs: `+fwvip_i2c_mon_trace` (each reconstructed transaction),
 - **No responder running ⇒ a hung bus.** An addressed target waits for
   its responder with SCL held low. Start one before stimulus; set a UVM
   timeout.
-- **Target timing minimum.** The kit target core misses a bit when SCL is
-  low for only one of its clocks after an ACK (fw-proto-i2c
-  `tests/formal/PROPERTIES.md`). The default core timing (`T_LOW=4`) is
-  well clear of it.
+- **A read moves at least one byte.** Once a target ACKs a read address it
+  owns SDA until a byte is NACKed, so the driver rejects
+  `add_read(addr, 0)` with a fatal error. Callers of the kit's
+  `i2c_controller_if` must follow the same contract (see its header).
+- **Bus speed is set on the controller wrapper**:
+  `i2c_controller_xtor #(.T_LOW(..), .T_HIGH(..), ...)`, counted in core
+  clocks, with defaults of 4/4/2/2/2/2. Any value down to 1 works.
 - Don't rebuild the kit: transactors, bridges and role APIs are
   `fw-proto-i2c`'s.
