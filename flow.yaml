@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+package:
+  name: org.fwvip.i2c
+
+  # The UVM project archetype (dv-flow-libproject): `dfm run tests`, `smoke`,
+  # `tests-info`, `--sim`, `--build`, with this file filling its slots.
+  uses: project.dv.uvm
+
+  # IVPM-generated map: resolves the imports below by name. Named through
+  # $IVPM_PACKAGES so the same line works standalone (this repo's packages/)
+  # and as a dependency (the consuming project's packages/).
+  package-map: "${{ env.IVPM_PACKAGES }}/dv-flow-package-map.yaml"
+
+  imports:
+  - project.dv.uvm
+  - fw-hdl
+  - fw.proto.i2c
+  - org.fwvip.core
+
+  fragments:
+  - src/vip.yaml
+  - tests/uvm/flow.yaml
+
+  tasks:
+  # The VIP is class code only: nothing synthesizable of its own.
+  - override: src-spl
+    needs: [vip-uvm-hvlsrc]
+
+  # No RTL of its own to lint: the kit's cores are linted by fw.proto.i2c's
+  # own lint-rtl.
+  - override: lint-rtl
+    uses: std.NotProvided
+
+  # NOTE: no bench exists yet (no tests/uvm/tests, no fwvip_i2c_* classes --
+  # this is a structure-only scaffold per design.md). `tests`/`smoke` are left
+  # UNOVERRIDDEN here rather than pointed at a `bench.uvm-tests` task that
+  # does not exist yet (fwvip-chi's shape: `needs: [bench.uvm-tests]`) --
+  # doing so would either fail to resolve or (worse) silently no-op. Once
+  # src/uvm/ classes and a tests/uvm/ bench land, add:
+  #   - override: tests
+  #     needs: [bench.uvm-tests]
+  #   - override: smoke
+  #     needs: [bench.uvm-tests]
+  #     with:
+  #       tests: [<real case names once they exist>]
+
+  # The docs are a test: sphinx-build -W, so a warning or a broken
+  # cross-reference fails.
+  - name: docs-build
+    uptodate: false
+    shell: bash
+    run: sphinx-build -W --keep-going -q -b html "${{ rootdir }}/docs" "$TASK_RUNDIR/html"
+
+  - root: docs
+    desc: Build the documentation with warnings as errors (HTML in the task's rundir)
+    needs: [docs-build]

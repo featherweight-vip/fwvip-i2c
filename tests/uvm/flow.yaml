@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+#
+# The back-to-back UVM bench, once it exists: the VIP's controller agent ->
+# the kit's controller core <-> wired-AND bus <-> the kit's target core ->
+# the VIP's target agent, with the VIP's monitor agent on the bus (design.md
+# §6/§9).
+#
+# NOTE: this is a structure-only placeholder (design.md scaffold phase -- no
+# tests/uvm/env, tests/uvm/tests or tests/uvm/tb exist yet). Nothing is
+# defined here yet on purpose: inventing a `uvm-env`/`uvm-tests` task shape
+# or test-case names before the §6 classes and the bench env are written
+# would just be guessing. Fill this in (mirroring fwvip-chi's
+# tests/uvm/flow.yaml: a `uvm-env` task, one `tb-img` per view, and a
+# `uvm-tests` task with a `strategy.matrix` of real case names) once the
+# bench is built.
+fragment:
+  name: bench
+  tasks: []

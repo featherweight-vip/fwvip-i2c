@@ -1,0 +1,61 @@
+$schema: https://fvutils.github.io/ivpm/ivpm.schema.json
+
+package:
+  name: fwvip-i2c
+  version: "0.1.0"
+  description: UVM Verification IP for I2C (UM10204), over the fw-proto-i2c transactor kit.
+  license: Apache-2.0
+  default-dep-set: dev
+
+  dep-sets:
+  # What a project that uses the VIP needs: the kit (types, transactors, the
+  # class layer) and fwvip-core (clock and reset providers). A consumer
+  # fetches this set and nothing else.
+  - name: use
+    description: The kit and fwvip-core; what a consuming project fetches.
+    deps:
+    - name: fw-hdl
+      url: https://github.com/featherweight-hdl/fw-hdl.git
+      dep-set: default
+    - name: fw-proto-i2c
+      url: ssh://git@a9550.perch-char.ts.net:222/featherweight-ip/fw-proto-i2c.git
+      dep-set: use
+    - name: fwvip-core
+      url: https://github.com/featherweight-vip/fwvip-core.git
+      deps: skip
+
+  # Building and running the VIP's own tests and docs.
+  - name: dev
+    description: The use set plus simulators, UVM, dv-flow and Sphinx.
+    uses: [use]
+    deps:
+    - name: fw-hdl
+      url: https://github.com/featherweight-hdl/fw-hdl.git
+      dep-set: default-dev
+    - name: dv-flow-mgr
+      url: https://github.com/dv-flow/dv-flow-mgr.git
+      dep-set: default-dev
+    - name: dv-flow-libhdlsim
+      url: https://github.com/dv-flow/dv-flow-libhdlsim.git
+      dep-set: default-dev
+    # project.dv.uvm, the archetype flow.yaml uses.
+    - name: dv-flow-libproject
+      url: https://github.com/dv-flow/dv-flow-libproject.git
+      dep-set: default-dev
+    - name: dv-flow-libhdltest
+      url: https://github.com/dv-flow/dv-flow-libhdltest.git
+      dep-set: default-dev
+    - name: dv-flow-libhdllint
+      url: https://github.com/dv-flow/dv-flow-libhdllint.git
+      dep-set: default-dev
+    - name: dv-flow-libformal
+      url: https://github.com/dv-flow/dv-flow-libformal.git
+      dep-set: default-dev
+    - { name: sphinx, src: pypi }
+    - { name: myst-parser, src: pypi }
+    - { name: furo, src: pypi }
+    - { name: sphinx-copybutton, src: pypi }
+    # NOTE: fw-hdl's dfm plugin (packages/fw-hdl/python) is not at the repo
+    # root, so ivpm does not install it; project.dv does not load without it.
+    # Install it once by hand:
+    #   pip install -e packages/fw-hdl/python
