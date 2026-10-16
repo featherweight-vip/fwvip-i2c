@@ -48,4 +48,12 @@ class fwvip_i2c_b2b_seq_base extends fwvip_i2c_ctrl_seq_base;
         write(t, TGT_ADDR, b);
         read(t, TGT_ADDR, n);
     endtask
+
+    // The same in one transaction: set the pointer, Sr, read.
+    // t.seg[1].data holds the bytes read.
+    task mem_read_sr(output fwvip_i2c_xact t, input bit [7:0] off, input int unsigned n);
+        bit [7:0] b[] = new[1];
+        b[0] = off;
+        write_read(t, TGT_ADDR, b, n);
+    endtask
 endclass

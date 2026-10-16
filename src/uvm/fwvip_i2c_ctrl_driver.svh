@@ -30,7 +30,9 @@ class fwvip_i2c_ctrl_driver extends uvm_driver #(fwvip_i2c_xact);
 
     // START/Sr + address per segment, then its data bytes; STOP at the end
     // or at the first NACK. Arbitration loss abandons the transaction with
-    // no STOP: the core has already released the bus.
+    // no STOP: the core has already released the bus. Either way the
+    // segments after the one that ended it never ran, and are dropped, so
+    // `t` holds what went on the bus.
     virtual task execute(fwvip_i2c_xact t);
         bit ack, arb_lost;
         // An ACKed read address hands SDA to the target until a byte is
@@ -53,6 +55,7 @@ class fwvip_i2c_ctrl_driver extends uvm_driver #(fwvip_i2c_xact);
                 t.status = FWVIP_I2C_ARB_LOST;
                 s.data   = new[0];
                 s.ack    = new[0];
+                drop_after(t, i);
                 return;
             end
             s.addr_ack = ack;
@@ -61,6 +64,7 @@ class fwvip_i2c_ctrl_driver extends uvm_driver #(fwvip_i2c_xact);
                 t.nack_seg = i;
                 s.data     = new[0];
                 s.ack      = new[0];
+                drop_after(t, i);
                 m_cfg.stop();
                 return;
             end
@@ -78,6 +82,7 @@ class fwvip_i2c_ctrl_driver extends uvm_driver #(fwvip_i2c_xact);
                     t.status = FWVIP_I2C_ARB_LOST;
                     s.data   = new[j](s.data);
                     s.ack    = new[j](s.ack);
+                    drop_after(t, i);
                     return;
                 end
                 if (!s.read && !ack) begin
@@ -86,6 +91,7 @@ class fwvip_i2c_ctrl_driver extends uvm_driver #(fwvip_i2c_xact);
                     t.nack_byte = j;
                     s.data      = new[j + 1](s.data);
                     s.ack       = new[j + 1](s.ack);
+                    drop_after(t, i);
                     m_cfg.stop();
                     return;
                 end
@@ -93,4 +99,8 @@ class fwvip_i2c_ctrl_driver extends uvm_driver #(fwvip_i2c_xact);
         end
         m_cfg.stop();
     endtask
+
+    protected function void drop_after(fwvip_i2c_xact t, int i);
+        while (t.seg.size() > i + 1) void'(t.seg.pop_back());
+    endfunction
 endclass

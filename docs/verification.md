@@ -32,20 +32,21 @@ the monitor agent fails it on any out-of-order bus event.
 | `addr_nack` | writes and reads to addresses nobody answers end in `ADDR_NACK` + STOP; the bus still works afterwards |
 | `data_nack` | the target NACKs the third data byte of a write: `DATA_NACK` at byte 3, earlier bytes stored, the NACKed one not |
 | `stretch` | the target takes 5–40 cycles over every decision (SCL held low each time); 12 random transactions |
-| `rand_traffic` | 40 random writes/reads of 0–8 bytes, mostly to the target and some to an absent address, with 0–8 cycles of stretch |
+| `repeated_start` | transactions of two and three segments joined by Sr: write then read (a random read with no STOP), write then write then read, read then write; an Sr to an absent address (`ADDR_NACK` in segment 1, the write before it stored); a data NACK before an Sr (STOP, the read segment dropped) |
+| `rand_traffic` | 40 random transactions of 1–3 segments (an Sr follows a segment 25% of the time), each a write or read of 0–8 bytes, mostly to the target and some to an absent address, with 0–8 cycles of stretch |
 | `mon_teeth` | clean traffic, then events no legal bus produces (a byte and a STOP outside a transaction, a data byte after a NACK) are fed to the monitor agent, which must flag each one |
 
 `mon_teeth` is there so that the monitor's checks are known to fire: if the
 agent stopped checking, every other case would still pass.
 
-All six pass (`dfm run tests`). CI runs `smoke` and `mon_teeth` on every
+All seven pass (`dfm run tests`). CI runs `smoke` and `mon_teeth` on every
 push.
 
 ## The kit (`packages/fw-proto-i2c/tests/`)
 
 | Component | Covers |
 |---|---|
-| `i2c_proto_tb` | the required back-to-back sim: controller and target transactors on one bus |
+| `i2c_proto_tb` | the required back-to-back sim: controller and target transactors on one bus, including repeated START after a write, after a read and after a NACKed address |
 | `i2c_proto_fast_tb` | the same case with every controller timing phase at 1 clock, the fastest bus the cores support |
 | `arb/i2c_arb_tb` | two controllers start at the same time against one target; the one addressing 0x60 must lose arbitration to the one addressing 0x10, which is unaffected (design.md §8 issue 1) |
 | `formal/i2c_proto_fv` | a BMC of a controller core and a target core on a real open-drain bus; invariants and cover goals in `tests/formal/PROPERTIES.md` (design.md §8 issue 2) |
@@ -74,10 +75,18 @@ regressions guard the fix:
 
 This bench runs at the default timing (`T_LOW = 4`), which hid the bug.
 
+Adding repeated START showed that the kit's "known gap" was not real. The
+target core takes the SCL drop before an Sr as the start of a data byte,
+and the Sr edge then overrides that, as for a STOP. The kit sims, the
+formal harness (an Sr cover goal, plus invariants 8 and 9 on START/STOP
+edges and address integrity) and the `repeated_start` case here now cover
+it. The same work found that the formal harness's `u_ctl.*` hierarchical
+references had always been undriven constants in the sv2v + yosys flow, so
+the old arbitration invariant checked nothing. The harness now uses ports
+only (`tests/formal/PROPERTIES.md`).
+
 ## Not covered yet
 
-- **Repeated START**: the v1 target core cannot tell a repeated START from
-  the start of another data byte, so no case uses multi-segment items.
 - **10-bit addressing**: not implemented by the v1 cores.
 - **Arbitration at the UVM level**: the kit's `i2c_arb_tb` covers it, but
   the bench has one controller, and the kit monitor core does not report

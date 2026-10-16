@@ -50,7 +50,7 @@ matching `inst`.
 | `fwvip_i2c_ctrl_config` / `_config_p #(vif_t)` | implements `i2c_controller_if` (`start`, `tx_byte`, `rx_byte`, `stop`); `_p` forwards to an `i2c_controller_xtor_bridge`, built on first use |
 | `fwvip_i2c_ctrl_driver` | runs each item as per-byte calls; fills its results; `ap`, `n_done` |
 | `fwvip_i2c_ctrl_agent` | `m_cfg`, `m_seqr` (`fwvip_i2c_ctrl_sequencer`), `m_driver`, `ap` |
-| `fwvip_i2c_ctrl_seq_base` | `do_xact`, `write`, `read`, `rand_addr7` |
+| `fwvip_i2c_ctrl_seq_base` | `do_xact`, `write`, `read`, `write_read`, `rand_addr7` |
 | `fwvip_i2c_write_seq`, `_read_seq`, `_rand_seq` | see {doc}`sequences` |
 
 ### Target

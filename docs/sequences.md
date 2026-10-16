@@ -19,7 +19,12 @@ START.
 On a NACK the controller issues STOP, and a write NACKed partway is
 truncated after the NACKed byte. On arbitration loss it issues no STOP,
 because the core has already released the bus; the caller retries the whole
-transaction.
+transaction. Either way, the segments after the one that ended the
+transaction never reach the bus and are removed from `seg`.
+
+A NACK on the address of a later segment ends the transaction the same
+way: `ADDR_NACK`, with `nack_seg` pointing at that segment and the earlier
+segments complete.
 
 Build one by hand with `add_write(addr, data)` and `add_read(addr, n)`. A
 read segment must have `n ≥ 1`, and the driver rejects a zero-byte read
@@ -31,14 +36,8 @@ address would never reach the bus.
 ```text
 OK [W 0x50 10 a0 a1 a2 a3]
 OK [R 0x50 a0 a1 a2 a3~]
+OK [W 0x50 10 | Sr R 0x50 a0 a1~]
 ADDR_NACK [W 0x23 NACK]
-```
-
-```{admonition} Repeated START is not usable yet
-:class: warning
-Multi-segment items are modeled, but the v1 kit target core does not tell a
-repeated START from the start of another data byte. Use write + STOP + read
-for a register read (as `mem_read()` in the bench does).
 ```
 
 ## Controller sequences
@@ -52,6 +51,12 @@ Its helpers return the completed item:
 `read(t, addr7, n)`
 : START, address (read), `n` bytes with the last NACKed, STOP.
   `t.seg[0].data` holds the bytes read.
+
+`write_read(t, addr7, data[], n)`
+: START, address (write), `data`, repeated START, address (read), `n`
+  bytes, STOP. This is the usual register read: no other controller can
+  take the bus between setting the register pointer and reading.
+  `t.seg[1].data` holds the bytes read.
 
 `do_xact(t)`
 : runs a hand-built item.
@@ -69,8 +74,7 @@ class my_seq extends fwvip_i2c_ctrl_seq_base;
         write(t, 7'h50, wr);
         if (t.status != FWVIP_I2C_OK) `uvm_error("SEQ", t.convert2string())
         wr = '{8'h10};
-        write(t, 7'h50, wr);                          // set the pointer
-        read(t, 7'h50, 2);                            // t.seg[0].data == '{de, ad}
+        write_read(t, 7'h50, wr, 2);                  // t.seg[1].data == '{de, ad}
     endtask
 endclass
 ```
@@ -81,7 +85,7 @@ Ready-made sequences. Set the fields, then `start()`:
 |---|---|---|
 | `fwvip_i2c_write_seq` | `addr`, `data[]`; result in `t` | one write |
 | `fwvip_i2c_read_seq` | `addr`, `n`; result in `t` | one read |
-| `fwvip_i2c_rand_seq` | `n_xacts` (20), `max_bytes` (8), `read_pct` (50), `addrs[$]` | random single-segment writes (0..`max_bytes` bytes) and reads (1..`max_bytes`) to a random entry of `addrs`, or to a random legal address if `addrs` is empty |
+| `fwvip_i2c_rand_seq` | `n_xacts` (20), `max_bytes` (8), `read_pct` (50), `sr_pct` (25), `max_segs` (3), `addrs[$]` | random transactions to a random entry of `addrs`, or to a random legal address if `addrs` is empty. Each segment is a write of 0..`max_bytes` bytes or a read of 1..`max_bytes`. After each segment, another follows a repeated START with probability `sr_pct`%, up to `max_segs` segments. `sr_pct = 0` gives single-segment traffic |
 
 ## Target responders
 
@@ -117,8 +121,9 @@ An EEPROM-style target: 256 bytes behind an 8-bit pointer.
 - The first byte of a write sets the pointer. Each later write byte is
   stored at the pointer, and each read byte comes from it. Both advance it,
   wrapping at 256.
-- The pointer persists across transactions, so "write the offset, STOP,
-  read" is a random read.
+- The pointer persists across transactions and repeated STARTs, so "write
+  the offset, then read" is a random read, with a STOP or an Sr between
+  the two.
 - Unwritten bytes read as `init_byte(off)` (`off ^ 8'ha5`). `peek(off)`
   reads the memory without touching the pointer.
 

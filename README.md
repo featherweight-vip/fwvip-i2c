@@ -6,8 +6,8 @@
 `fwvip-chi`/`fw-proto-chi` and `fwvip-wb`/`fw-proto-wb`.
 
 **Status:** controller, target and monitor agents, an EEPROM-style memory
-responder and a back-to-back UVM bench (six cases, all passing). 7-bit
-addressing only; repeated START is not usable yet (a kit target-core gap).
+responder and a back-to-back UVM bench (seven cases, all passing),
+including repeated START. 7-bit addressing only.
 
 ```sh
 dfm run tests        # every UVM case

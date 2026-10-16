@@ -12,6 +12,7 @@ package fwvip_i2c_b2b_tests_pkg;
     `include "fwvip_i2c_addr_nack_seq.svh"
     `include "fwvip_i2c_data_nack_seq.svh"
     `include "fwvip_i2c_stretch_seq.svh"
+    `include "fwvip_i2c_repeated_start_seq.svh"
     `include "fwvip_i2c_rand_traffic_seq.svh"
 
     `include "fwvip_i2c_b2b_test.svh"

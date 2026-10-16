@@ -7,9 +7,9 @@ methodology layer over the `fw-proto-i2c` transactor kit (vendored under
 ```{admonition} Status
 :class: note
 The kit and the UVM layer (controller, target and monitor agents, a
-memory responder, a back-to-back bench with six passing cases) are
-implemented. v1 limits: 7-bit addressing only, and repeated START is not
-usable yet. See {doc}`verification` and {doc}`open-issues`.
+memory responder, a back-to-back bench with seven passing cases) are
+implemented, including repeated START. v1 limits: 7-bit addressing only.
+See {doc}`verification` and {doc}`open-issues`.
 ```
 
 ## Where to start

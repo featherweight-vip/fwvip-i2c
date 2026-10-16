@@ -27,7 +27,7 @@ dfm run tests-info               # the case inventory, building nothing
 dfm run docs                     # these pages; sphinx-build -W, so a warning fails
 ```
 
-The six cases are described in {doc}`verification`. Two plusargs help when
+The seven cases are described in {doc}`verification`. Two plusargs help when
 one fails:
 
 `+fwvip_i2c_mon_trace`

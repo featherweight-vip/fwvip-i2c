@@ -4,10 +4,6 @@
 
 What the current kit and VIP do not do, and where each limitation shows up:
 
-- **Repeated START.** The v1 target core cannot tell a repeated START from
-  the start of another data byte (see the header of
-  `i2c_target_xtor_core.sv`). `fwvip_i2c_xact` models multi-segment
-  transactions, but nothing exercises them. Use write + STOP + read instead.
 - **Bus timing is fixed per instance.** The controller's `T_*` parameters
   set it; the runtime `cfg_*` timing of design.md §5 is not implemented
   (see {doc}`reference`).

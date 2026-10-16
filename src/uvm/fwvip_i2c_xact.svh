@@ -6,10 +6,8 @@
 // nack_byte say where (nack_byte is -1 for the address byte); the
 // controller then issues STOP. On ARB_LOST the core has already released
 // the bus and no STOP is sent: the caller retries the whole transaction.
-//
-// Known kit gap: the v1 target core does not tell a repeated START from
-// another data byte (fw-proto-i2c i2c_target_xtor_core.sv header), so
-// multi-segment transactions are modeled here but not yet exercised.
+// The segments after the one that ended it are dropped, since they never
+// reached the bus.
 class fwvip_i2c_xact extends uvm_sequence_item;
     `uvm_object_utils(fwvip_i2c_xact)
 
