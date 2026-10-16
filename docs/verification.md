@@ -49,7 +49,9 @@ push.
 | `i2c_proto_tb` | the required back-to-back sim: controller and target transactors on one bus, including repeated START after a write, after a read and after a NACKed address |
 | `i2c_proto_fast_tb` | the same case with every controller timing phase at 1 clock, the fastest bus the cores support |
 | `arb/i2c_arb_tb` | two controllers start at the same time against one target; the one addressing 0x60 must lose arbitration to the one addressing 0x10, which is unaffected (design.md §8 issue 1) |
+| `arb/i2c_arb_sync_tb` | the same collision with the two controllers at different `T_LOW`/`T_HIGH`, sharing seven address bits: clock synchronization (UM10204 §3.1.7). Each contended SCL low phase must last the longer `T_LOW`, and each contended high phase at most the shorter `T_HIGH` |
 | `formal/i2c_proto_fv` | a BMC of a controller core and a target core on a real open-drain bus; invariants and cover goals in `tests/formal/PROPERTIES.md` (design.md §8 issue 2) |
+| `formal/i2c_ctl_sync_fv` | a BMC of the controller core alone, with a free other device on SCL and SDA: it counts high time only while SCL reads high, and every low phase is a full `T_LOW` |
 
 ## What testing found
 
@@ -84,6 +86,18 @@ it. The same work found that the formal harness's `u_ctl.*` hierarchical
 references had always been undriven constants in the sv2v + yosys flow, so
 the old arbitration invariant checked nothing. The harness now uses ports
 only (`tests/formal/PROPERTIES.md`).
+
+The controller didn't synchronize its clock with another controller's
+(UM10204 §3.1.7). It counted `T_HIGH` without watching SCL, so when a
+controller with a shorter high phase pulled SCL low, this one kept counting
+high through the other's low phase. With different enough timings the two
+then disagree on which bit they are on, which `i2c_arb_sync_tb` shows as a
+lost address ACK. The high phase now also ends when SCL reads low. Writing
+that test also found that the low phase after a START and the one before a
+STOP lasted `T_HD_STA`, not `T_LOW`, and that the START setup and hold
+counts were swapped. Both are fixed. The formal harness's bit-count
+invariants (2 and 3), dropped when the hierarchical references turned out
+to be dead, are back on a formal-only debug output of the controller core.
 
 ## Not covered yet
 

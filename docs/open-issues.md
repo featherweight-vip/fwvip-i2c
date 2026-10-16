@@ -7,10 +7,6 @@ What the current kit and VIP do not do, and where each limitation shows up:
 - **Bus timing is fixed per instance.** The controller's `T_*` parameters
   set it; the runtime `cfg_*` timing of design.md §5 is not implemented
   (see {doc}`reference`).
-- **No clock synchronization during the high phase.** The controller counts
-  `T_HIGH` without watching SCL, so a device that pulls SCL low during the
-  high phase (a slow target, or another controller) does not restart its
-  low count as UM10204 §3.1.7 requires.
 - **10-bit addressing** is not implemented by the cores. The target config
   NACKs 10-bit addresses.
 - **Arbitration loss is not reported by the monitor core**, so the monitor

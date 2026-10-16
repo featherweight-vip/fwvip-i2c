@@ -46,8 +46,8 @@ directory:
 
 ```sh
 cd packages/fw-proto-i2c
-dfm run tests          # i2c_proto, i2c_arb
-dfm run fv             # back-to-back BMC (see its tests/formal/PROPERTIES.md)
+dfm run tests          # i2c_proto, i2c_proto_fast, i2c_arb, i2c_arb_sync
+dfm run fv             # formal BMC (see its tests/formal/PROPERTIES.md)
 ```
 
 ## Using the VIP from another project
