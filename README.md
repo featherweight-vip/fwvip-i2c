@@ -18,7 +18,7 @@ dfm run docs         # Sphinx, warnings as errors
 See [`docs/design.md`](docs/design.md) for the design,
 [`skills/fwvip-i2c-usage/SKILL.md`](skills/fwvip-i2c-usage/SKILL.md) for
 how to wire and drive the agents, and [`docs/`](docs/) for the
-user-facing documentation (not yet updated for the UVM layer).
+user-facing documentation.
 
 Setup note: fw-hdl's dfm plugin is not installed by `ivpm update`; install
 it once with `uv pip install --python packages/python/bin/python -e

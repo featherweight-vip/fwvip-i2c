@@ -7,14 +7,14 @@ methodology layer over the `fw-proto-i2c` transactor kit (vendored under
 ```{admonition} Status
 :class: note
 The kit and the UVM layer (controller, target and monitor agents, a
-memory responder, a back-to-back bench) are implemented; these pages are
-not yet updated to describe them. See {doc}`open-issues` and
-{doc}`design` §8.
+memory responder, a back-to-back bench with six passing cases) are
+implemented. v1 limits: 7-bit addressing only, and repeated START is not
+usable yet. See {doc}`verification` and {doc}`open-issues`.
 ```
 
 ## Where to start
 
-- {doc}`getting-started` — build and run (once there is something to run).
+- {doc}`getting-started` — set up, build and run.
 - {doc}`integration` — how to wire the controller/target/monitor agents into a bench.
 - {doc}`sequences` — the transaction item and sequences.
 - {doc}`reference` — constants, link presets and classes.
