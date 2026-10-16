@@ -31,18 +31,14 @@ package:
   - override: lint-rtl
     uses: std.NotProvided
 
-  # NOTE: no bench exists yet (no tests/uvm/tests, no fwvip_i2c_* classes --
-  # this is a structure-only scaffold per design.md). `tests`/`smoke` are left
-  # UNOVERRIDDEN here rather than pointed at a `bench.uvm-tests` task that
-  # does not exist yet (fwvip-chi's shape: `needs: [bench.uvm-tests]`) --
-  # doing so would either fail to resolve or (worse) silently no-op. Once
-  # src/uvm/ classes and a tests/uvm/ bench land, add:
-  #   - override: tests
-  #     needs: [bench.uvm-tests]
-  #   - override: smoke
-  #     needs: [bench.uvm-tests]
-  #     with:
-  #       tests: [<real case names once they exist>]
+  - override: tests
+    needs: [bench.uvm-tests]
+
+  # What CI runs on every push.
+  - override: smoke
+    needs: [bench.uvm-tests]
+    with:
+      tests: [smoke, mon_teeth]
 
   # The docs are a test: sphinx-build -W, so a warning or a broken
   # cross-reference fails.

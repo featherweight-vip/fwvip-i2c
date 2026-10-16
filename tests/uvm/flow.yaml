@@ -1,18 +1,51 @@
 # yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
 #
-# The back-to-back UVM bench, once it exists: the VIP's controller agent ->
-# the kit's controller core <-> wired-AND bus <-> the kit's target core ->
-# the VIP's target agent, with the VIP's monitor agent on the bus (design.md
-# §6/§9).
+# The back-to-back UVM bench (design.md §6): the VIP's controller agent ->
+# the kit's controller transactor <-> wired-AND bus <-> the kit's target
+# transactor -> the VIP's target agent (memory responder), with the VIP's
+# monitor agent on the bus. env/ (the UVM env), tests/ (the cases), tb/
+# (HDL and HVL tops).
 #
-# NOTE: this is a structure-only placeholder (design.md scaffold phase -- no
-# tests/uvm/env, tests/uvm/tests or tests/uvm/tb exist yet). Nothing is
-# defined here yet on purpose: inventing a `uvm-env`/`uvm-tests` task shape
-# or test-case names before the §6 classes and the bench env are written
-# would just be guessing. Fill this in (mirroring fwvip-chi's
-# tests/uvm/flow.yaml: a `uvm-env` task, one `tb-img` per view, and a
-# `uvm-tests` task with a `strategy.matrix` of real case names) once the
-# bench is built.
+#   dfm run tests                        # every case
+#   dfm run tests --tests data_nack      # one case
+#   dfm run smoke
 fragment:
   name: bench
-  tasks: []
+
+  tasks:
+  - name: uvm-env
+    uses: project.dv.uvm.utils.env-base
+    needs:
+    - vip-uvm-hvlsrc
+    - org.fwvip.core.core-uvm-pkg
+    - org.fwvip.core.clock-reset-xtor
+    - "flags-comp-${{ build }}"
+    with:
+      env_include: [fwvip_i2c_b2b_env_pkg.sv]
+
+  - name: img
+    uses: project.dv.uvm.utils.tb-img
+    needs: [uvm-env, flags-img]
+    with:
+      tb_include: [fwvip_i2c_hdl_top.sv, fwvip_i2c_hvl_top.sv]
+      top: [fwvip_i2c_hvl_top]
+
+  # One cell per case. `name` is what `--tests` selects.
+  - name: uvm-tests
+    strategy:
+      matrix:
+        case:
+        - { name: smoke,        seq: fwvip_i2c_smoke_seq,        test: fwvip_i2c_b2b_test }
+        - { name: addr_nack,    seq: fwvip_i2c_addr_nack_seq,    test: fwvip_i2c_b2b_test }
+        - { name: data_nack,    seq: fwvip_i2c_data_nack_seq,    test: fwvip_i2c_b2b_test }
+        - { name: stretch,      seq: fwvip_i2c_stretch_seq,      test: fwvip_i2c_b2b_test }
+        - { name: rand_traffic, seq: fwvip_i2c_rand_traffic_seq, test: fwvip_i2c_b2b_test }
+        - { name: mon_teeth,    seq: fwvip_i2c_smoke_seq,        test: fwvip_i2c_mon_teeth_test }
+    body:
+    - name: "${{ this.case.name }}"
+      uses: hdlsim.vlt.SimUVMCase
+      needs: [img, "flags-run-${{ build }}"]
+      with:
+        name: "${{ this.case.name }}"
+        testname: "${{ this.case.test }}"
+        plusargs: ["SEQ=${{ this.case.seq }}"]

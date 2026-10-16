@@ -1,36 +1,33 @@
 # yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
 #
 # The VIP's sources. Two exports, as every fwvip-<proto>:
-#   xtor-pkg       fwvip_i2c_xtor_pkg: the kit's link parameter presets,
-#                  under the names the VIP uses
+#   xtor-pkg       fwvip_i2c_xtor_pkg: the address width and reserved-address
+#                  rule the VIP's configs and sequences share
 #   vip-uvm-hvlsrc fwvip_i2c_pkg: the UVM agents, items and sequences
 # The VIP builds no transactors, bridges or checkers: those are the kit's
 # (fw.proto.i2c.*), and a bench brings the ones it uses.
-#
-# NOTE: this is a structure-only placeholder (design.md scaffold phase -- no
-# fwvip_i2c_* classes exist yet). The FileSets below are commented out
-# because their `include:` files do not exist; uncomment and fill in the
-# file lists as the §6 classes (fwvip_i2c_xact, the ctrl/tgt/mon agents,
-# sequences) land.
 fragment:
-  tasks: []
-  # - export: xtor-pkg
-  #   uses: std.FileSet
-  #   needs: [fw.proto.i2c.types]
-  #   with:
-  #     type: systemVerilogSource
-  #     base: uvm
-  #     incdirs: ["."]
-  #     include: [fwvip_i2c_xtor_pkg.sv]
-  #
-  # - export: vip-uvm-hvlsrc
-  #   uses: std.FileSet
-  #   needs:
-  #   - xtor-pkg
-  #   - fw.proto.i2c.class
-  #   - org.fwvip.core.core-uvm-pkg
-  #   with:
-  #     type: systemVerilogSource
-  #     base: uvm
-  #     incdirs: ["."]
-  #     include: [fwvip_i2c_pkg.sv]
+  tasks:
+  - export: xtor-pkg
+    uses: std.FileSet
+    with:
+      type: systemVerilogSource
+      base: uvm
+      incdirs: ["."]
+      include: [fwvip_i2c_xtor_pkg.sv]
+
+  # The UVM layer. Needs the kit's class layer (the role APIs and bridges,
+  # which reference the transactor interfaces) and fwvip-core's clock
+  # provider (the target agent counts responder latency on it).
+  # Only the package unit is listed; its .svh files come in via the incdir.
+  - export: vip-uvm-hvlsrc
+    uses: std.FileSet
+    needs:
+    - xtor-pkg
+    - fw.proto.i2c.class
+    - org.fwvip.core.core-uvm-pkg
+    with:
+      type: systemVerilogSource
+      base: uvm
+      incdirs: ["."]
+      include: [fwvip_i2c_pkg.sv]

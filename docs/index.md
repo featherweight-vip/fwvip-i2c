@@ -2,13 +2,14 @@
 
 `fwvip-i2c` is the UVM Verification IP for I2C (NXP/Philips UM10204): the
 methodology layer over the `fw-proto-i2c` transactor kit (vendored under
-`packages/`). See [`design.md`](design.md) (a sibling of this Sphinx tree,
-not a page in it) for the full design rationale.
+`packages/`). See {doc}`design` for the full design rationale.
 
 ```{admonition} Status
 :class: note
-Structure-only scaffold. No `fwvip_i2c_*` classes or `fw-proto-i2c` sources
-exist yet — see {doc}`open-issues` and `design.md` §8/§9.
+The kit and the UVM layer (controller, target and monitor agents, a
+memory responder, a back-to-back bench) are implemented; these pages are
+not yet updated to describe them. See {doc}`open-issues` and
+{doc}`design` §8.
 ```
 
 ## Where to start
@@ -30,4 +31,5 @@ sequences
 reference
 verification
 open-issues
+design
 ```
