@@ -7,7 +7,8 @@
 
 **Status:** controller, target and monitor agents, an EEPROM-style memory
 responder and a back-to-back UVM bench (eight cases, all passing),
-including repeated START. 7-bit addressing only.
+including repeated START and 10-bit addressing. One controller only;
+arbitration is tested in the kit (see `docs/arbitration.md`).
 
 ```sh
 dfm run tests        # every UVM case

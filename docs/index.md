@@ -8,8 +8,9 @@ methodology layer over the `fw-proto-i2c` transactor kit (vendored under
 :class: note
 The kit and the UVM layer (controller, target and monitor agents, a
 memory responder, a back-to-back bench with eight passing cases) are
-implemented, including repeated START. v1 limits: 7-bit addressing only.
-See {doc}`verification` and {doc}`open-issues`.
+implemented, including repeated START and 10-bit addressing. The bench
+has one controller, so arbitration is tested only in the kit. See
+{doc}`verification`, {doc}`open-issues` and {doc}`arbitration`.
 ```
 
 ## Where to start
@@ -20,6 +21,7 @@ See {doc}`verification` and {doc}`open-issues`.
 - {doc}`reference` — constants, link presets and classes.
 - {doc}`verification` — what is tested, and what testing found.
 - {doc}`open-issues` — open design questions carried over from `design.md` §8.
+- {doc}`arbitration` — design note: multiple controllers in the UVM bench (proposal).
 
 ```{toctree}
 :maxdepth: 2
@@ -31,5 +33,6 @@ sequences
 reference
 verification
 open-issues
+arbitration
 design
 ```

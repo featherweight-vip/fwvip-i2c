@@ -119,6 +119,6 @@ cover goals for a 10-bit write and read header.
 ## Not covered yet
 - **Arbitration at the UVM level**: the kit's `i2c_arb_tb` covers it, but
   the bench has one controller, and the kit monitor core does not report
-  arbitration loss.
+  arbitration loss. See {doc}`arbitration` for the plan.
 - Hs-mode, Ultra Fast mode, SMBus, general call, and timing-violation
   detection: see {doc}`open-issues` and design.md §8.

@@ -9,7 +9,10 @@ What the current kit and VIP do not do, and where each limitation shows up:
   (see {doc}`reference`).
 - **Arbitration loss is not reported by the monitor core**, so the monitor
   agent cannot publish `ARB_LOST`. The UVM bench has one controller; only
-  the kit's `i2c_arb_tb` exercises arbitration.
+  the kit's `i2c_arb_tb` exercises arbitration. {doc}`arbitration` proposes
+  how to add it to the bench. It also finds that the controller core
+  doesn't track bus busy, and argues that the monitor can't infer a loss
+  from the pins.
 - **Reserved addresses** get no special handling. A target config refuses
   one unless `allow_reserved` is set, and `rand_addr7()` avoids them.
 
