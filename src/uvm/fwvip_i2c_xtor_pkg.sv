@@ -6,7 +6,8 @@
 // target address is.
 package fwvip_i2c_xtor_pkg;
 
-    // The kit's link carries 10 address bits; the v1 cores use addr[6:0].
+    // The kit's link carries 10 address bits: 7-bit addresses in addr[6:0],
+    // or a 10-bit one with addr_10b.
     localparam int ADDR_WIDTH_MAX = 10;
 
     // 0000xxx (general call, START byte, CBUS, other bus formats, Hs master

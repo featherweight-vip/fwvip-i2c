@@ -1,5 +1,7 @@
 // Base target responder: extend it and override addressed() / rx_byte() /
-// tx_byte() (the kit's i2c_target_if). body() runs forever, offering the
+// tx_byte() (the kit's i2c_target_if). The target config answers
+// addressed_10b_hi() itself, from its 10-bit address, so a responder
+// rarely needs to. body() runs forever, offering the
 // responder to the driver; start it in the background (fork ... join_none)
 // on the target agent's sequencer. This base ACKs everything and sends 0xFF.
 class fwvip_i2c_tgt_seq extends uvm_sequence #(fwvip_i2c_tgt_item) implements i2c_target_if;
@@ -11,6 +13,10 @@ class fwvip_i2c_tgt_seq extends uvm_sequence #(fwvip_i2c_tgt_item) implements i2
 
     virtual task addressed(input bit [9:0] addr, input bit addr_10b,
                            input bit read, output bit ack);
+        ack = 1'b1;
+    endtask
+
+    virtual task addressed_10b_hi(input bit [1:0] addr_hi, output bit ack);
         ack = 1'b1;
     endtask
 

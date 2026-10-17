@@ -30,7 +30,11 @@ Build one by hand with `add_write(addr, data)` and `add_read(addr, n)`. A
 read segment must have `n ≥ 1`, and the driver rejects a zero-byte read
 with a fatal error. Once a target ACKs a read address, it owns SDA until
 the controller NACKs a byte, so a STOP or repeated START right after the
-address would never reach the bus.
+address would never reach the bus. The driver also rejects a 7-bit address
+of the form `1111 0xx`. UM10204 reserves that range for the 10-bit
+prefix, so on the bus the address byte is a 10-bit header. For a 10-bit
+address, pass `addr_10b = 1` (`add_write(addr, data, 1)`,
+`add_read(addr, n, 1)`).
 `convert2string()` prints it compactly; a trailing `~` marks a NACKed byte:
 
 ```text
@@ -85,7 +89,7 @@ Ready-made sequences. Set the fields, then `start()`:
 |---|---|---|
 | `fwvip_i2c_write_seq` | `addr`, `data[]`; result in `t` | one write |
 | `fwvip_i2c_read_seq` | `addr`, `n`; result in `t` | one read |
-| `fwvip_i2c_rand_seq` | `n_xacts` (20), `max_bytes` (8), `read_pct` (50), `sr_pct` (25), `max_segs` (3), `addrs[$]` | random transactions to a random entry of `addrs`, or to a random legal address if `addrs` is empty. Each segment is a write of 0..`max_bytes` bytes or a read of 1..`max_bytes`. After each segment, another follows a repeated START with probability `sr_pct`%, up to `max_segs` segments. `sr_pct = 0` gives single-segment traffic |
+| `fwvip_i2c_rand_seq` | `n_xacts` (20), `max_bytes` (8), `read_pct` (50), `sr_pct` (25), `max_segs` (3), `addrs[$]`, `addr10_pct` (0), `addrs10[$]` | random transactions to a random entry of `addrs`, or to a random legal address if `addrs` is empty. `addr10_pct`% of segments use a 10-bit address instead, from `addrs10` (or random if it is empty). Each segment is a write of 0..`max_bytes` bytes or a read of 1..`max_bytes`. After each segment, another follows a repeated START with probability `sr_pct`%, up to `max_segs` segments. `sr_pct = 0` gives single-segment traffic |
 
 ## Target responders
 
@@ -93,7 +97,14 @@ A responder implements the kit's `i2c_target_if`. Extend `fwvip_i2c_tgt_seq`
 and override:
 
 `addressed(addr, addr_10b, read, ack)`
-: an address byte matching this target; return its ACK.
+: an address matching this target; return its ACK. With `addr_10b` it is
+  a 10-bit address. A 10-bit read calls this twice: once for the write
+  header (`read = 0`) and again after the controller's Sr (`read = 1`).
+
+`addressed_10b_hi(addr_hi, ack)`
+: the first byte of a 10-bit header. The target config answers it from
+  `addr10` without calling the responder, so a responder rarely needs to
+  override it. The base class ACKs it.
 
 `rx_byte(data, ack)`
 : a byte the controller wrote; return its ACK.

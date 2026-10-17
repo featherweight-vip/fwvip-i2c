@@ -27,7 +27,7 @@ dfm run tests-info               # the case inventory, building nothing
 dfm run docs                     # these pages; sphinx-build -W, so a warning fails
 ```
 
-The seven cases are described in {doc}`verification`. Two plusargs help when
+The eight cases are described in {doc}`verification`. Two plusargs help when
 one fails:
 
 `+fwvip_i2c_mon_trace`
@@ -47,7 +47,8 @@ directory:
 ```sh
 cd packages/fw-proto-i2c
 dfm run tests          # i2c_proto, i2c_proto_fast, i2c_arb, i2c_arb_sync
-dfm run fv             # formal BMC (see its tests/formal/PROPERTIES.md)
+dfm run fv-quick       # formal BMC at per-push depth, about a minute
+dfm run fv             # full-depth formal BMC, about 30 minutes (see its tests/formal/PROPERTIES.md)
 ```
 
 ## Using the VIP from another project

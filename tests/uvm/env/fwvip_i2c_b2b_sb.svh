@@ -6,7 +6,8 @@
 //  - Data: a reference of the memory responder (fwvip_i2c_mem_responder_seq:
 //    the first write byte sets the pointer, later bytes store and advance,
 //    reads fetch and advance) built from the controller's completed
-//    transactions to TGT_ADDR. Every byte read must match it.
+//    transactions to TGT_ADDR or TGT_ADDR10 (one memory behind both).
+//    Every byte read must match it.
 class fwvip_i2c_b2b_sb extends uvm_component;
     `uvm_component_utils(fwvip_i2c_b2b_sb)
 
@@ -57,7 +58,8 @@ class fwvip_i2c_b2b_sb extends uvm_component;
     protected function void check_data(fwvip_i2c_xact t);
         foreach (t.seg[i]) begin
             fwvip_i2c_segment s = t.seg[i];
-            if (s.addr[6:0] != TGT_ADDR || !s.addr_ack) continue;
+            if (!(s.addr_10b ? s.addr == TGT_ADDR10 : s.addr[6:0] == TGT_ADDR) || !s.addr_ack)
+                continue;
             if (s.read) begin
                 foreach (s.data[j]) begin
                     bit [7:0] e = ref_mem.exists(ref_ptr) ? ref_mem[ref_ptr]

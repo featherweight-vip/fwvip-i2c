@@ -1,7 +1,8 @@
 // The back-to-back UVM env: the VIP's controller, target and monitor agents
 // on one bus, a scoreboard over the controller's completions and the
 // monitor's reconstruction, and the memory responder, which runs on the
-// target agent from the start of the run (start_responder()).
+// target agent from the start of the run (start_responder()). The target
+// answers TGT_ADDR and the 10-bit TGT_ADDR10.
 class fwvip_i2c_b2b_env extends uvm_env;
     `uvm_component_utils(fwvip_i2c_b2b_env)
 
@@ -28,6 +29,13 @@ class fwvip_i2c_b2b_env extends uvm_env;
         if (!uvm_config_db #(fwvip_clock_config)::get(this, "", "clock", m_clock))
             `uvm_fatal(get_type_name(), "no clock provider (fwvip_clock_config) in the config DB")
         m_resp = fwvip_i2c_mem_responder_seq::type_id::create("m_resp");
+        begin
+            fwvip_i2c_tgt_config tc;
+            if (!uvm_config_db #(fwvip_i2c_tgt_config)::get(this, "m_tgt", "cfg", tc))
+                `uvm_fatal(get_type_name(), "no fwvip_i2c_tgt_config \"cfg\" for m_tgt")
+            tc.addr10_en = 1'b1;
+            tc.addr10    = TGT_ADDR10;
+        end
     endfunction
 
     function void connect_phase(uvm_phase phase);

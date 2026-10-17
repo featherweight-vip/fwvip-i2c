@@ -40,6 +40,7 @@ fragment:
         - { name: data_nack,      seq: fwvip_i2c_data_nack_seq,      test: fwvip_i2c_b2b_test }
         - { name: stretch,        seq: fwvip_i2c_stretch_seq,        test: fwvip_i2c_b2b_test }
         - { name: repeated_start, seq: fwvip_i2c_repeated_start_seq, test: fwvip_i2c_b2b_test }
+        - { name: addr_10b,       seq: fwvip_i2c_addr_10b_seq,       test: fwvip_i2c_b2b_test }
         - { name: rand_traffic,   seq: fwvip_i2c_rand_traffic_seq,   test: fwvip_i2c_b2b_test }
         - { name: mon_teeth,      seq: fwvip_i2c_smoke_seq,          test: fwvip_i2c_mon_teeth_test }
     body:

@@ -17,6 +17,9 @@
 # (see dvkit/forgejo-ops templates/). If a publish job is ever added, add the
 # gate with it, on both sides.
 
+# FOR NOW THE FORGEJO SIDE RUNS ONLY ON DEMAND (workflow_dispatch), so CI
+# runs here; its `on:` block is the one other temporary difference.
+
 name: CI
 
 on:
@@ -24,8 +27,7 @@ on:
     branches: ['**']
   pull_request:
   workflow_dispatch:
-  # The nightly set (docs/plan/test-plan.md, "Regressions"): every test in
-  # every view, and the stress ladder.
+  # The nightly set: every UVM case (docs/verification.md).
   schedule:
     - cron: '17 3 * * *'
 
@@ -35,7 +37,7 @@ permissions:
 
 jobs:
   checks:
-    name: Lint, smoke, proofs and docs (push); all tests (nightly)
+    name: Smoke and docs (push); all tests and docs (nightly)
     # 24.04, not ubuntu-latest: on the Forgejo runner ubuntu-latest is a
     # 22.04 image with Python 3.10. Named the same on both sides so the two
     # runs are the same environment.
@@ -58,16 +60,11 @@ jobs:
             ivpm-${{ runner.os }}-
 
       - name: Checks
-        # CI_CHECKS: docs only, for now -- there is no bench yet (no
-        # tests/uvm/tests, no fwvip_i2c_* classes; see flow.yaml's note on
-        # `tests`/`smoke`). `dfm run smoke`/`tests` would fail on zero
-        # selected cases, which is a true but uninformative red build for a
-        # structure-only scaffold. Restore the push/nightly split below
-        # (`'tests' || 'smoke docs'`) once a bench exists and flow.yaml's
-        # `tests`/`smoke` overrides are filled in.
+        # CI_CHECKS: push runs `smoke` (the smoke and mon_teeth cases) and
+        # the docs; nightly runs every case (docs/verification.md).
         # ci/run.sh points IVPM_CACHE at ~/.cache/ivpm, the path cached above.
         env:
-          CI_CHECKS: docs
+          CI_CHECKS: ${{ github.event_name == 'schedule' && 'tests docs' || 'smoke docs' }}
           # Lets ivpm resolve edapack's `latest` releases through the GitHub
           # API when its unauthenticated path cannot: anonymous API calls get
           # 60 an hour, shared by every job on the runner's address.
@@ -102,6 +99,17 @@ jobs:
         with:
           report-path: ci-reports/ctrf/smoke.json
           title: Smoke tests
+          summary-report: true
+          test-report: true
+          failed-report: true
+          exit-on-no-files: false
+
+      - name: Nightly test results
+        if: always() && github.event_name == 'schedule'
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: ci-reports/ctrf/tests.json
+          title: All tests
           summary-report: true
           test-report: true
           failed-report: true

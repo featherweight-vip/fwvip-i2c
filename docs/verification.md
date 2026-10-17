@@ -33,20 +33,25 @@ the monitor agent fails it on any out-of-order bus event.
 | `data_nack` | the target NACKs the third data byte of a write: `DATA_NACK` at byte 3, earlier bytes stored, the NACKed one not |
 | `stretch` | the target takes 5–40 cycles over every decision (SCL held low each time); 12 random transactions |
 | `repeated_start` | transactions of two and three segments joined by Sr: write then read (a random read with no STOP), write then write then read, read then write; an Sr to an absent address (`ADDR_NACK` in segment 1, the write before it stored); a data NACK before an Sr (STOP, the read segment dropped) |
-| `rand_traffic` | 40 random transactions of 1–3 segments (an Sr follows a segment 25% of the time), each a write or read of 0–8 bytes, mostly to the target and some to an absent address, with 0–8 cycles of stretch |
+| `addr_10b` | 10-bit addressing (the target answers `TGT_ADDR10` = 0x2a5 as well as 0x50, with one memory behind both): a write and a read back, a pointer write then Sr and a read in one transaction, a 7-bit write then Sr and a 10-bit read, a 10-bit write of no bytes then Sr and a read, and addresses NACKed at the first header byte and at the second, writing and reading |
+| `rand_traffic` | 40 random transactions of 1–3 segments (an Sr follows a segment 25% of the time), each a write or read of 0–8 bytes, mostly to the target and some to an absent address, a quarter of them 10-bit, with 0–8 cycles of stretch |
 | `mon_teeth` | clean traffic, then events no legal bus produces (a byte and a STOP outside a transaction, a data byte after a NACK) are fed to the monitor agent, which must flag each one |
 
 `mon_teeth` is there so that the monitor's checks are known to fire: if the
 agent stopped checking, every other case would still pass.
 
-All seven pass (`dfm run tests`). CI runs `smoke` and `mon_teeth` on every
-push.
+All eight pass (`dfm run tests`). CI runs `smoke` and `mon_teeth` on every
+push, and all eight nightly.
+
+The kit's CI runs its sims, lint and `fv-quick` on every push: the
+back-to-back BMC at depth 45 plus the clock-sync BMC, about a minute.
+The depth-80 BMC (about 30 minutes) and the covers run nightly.
 
 ## The kit (`packages/fw-proto-i2c/tests/`)
 
 | Component | Covers |
 |---|---|
-| `i2c_proto_tb` | the required back-to-back sim: controller and target transactors on one bus, including repeated START after a write, after a read and after a NACKed address |
+| `i2c_proto_tb` | the required back-to-back sim: controller and target transactors on one bus, including repeated START after a write, after a read and after a NACKed address, and 10-bit addressing (write, read, a 10-bit read after an Sr, a NACK at either header byte) |
 | `i2c_proto_fast_tb` | the same case with every controller timing phase at 1 clock, the fastest bus the cores support |
 | `arb/i2c_arb_tb` | two controllers start at the same time against one target; the one addressing 0x60 must lose arbitration to the one addressing 0x10, which is unaffected (design.md §8 issue 1) |
 | `arb/i2c_arb_sync_tb` | the same collision with the two controllers at different `T_LOW`/`T_HIGH`, sharing seven address bits: clock synchronization (UM10204 §3.1.7). Each contended SCL low phase must last the longer `T_LOW`, and each contended high phase at most the shorter `T_HIGH` |
@@ -99,9 +104,19 @@ counts were swapped. Both are fixed. The formal harness's bit-count
 invariants (2 and 3), dropped when the hierarchical references turned out
 to be dead, are back on a formal-only debug output of the controller core.
 
-## Not covered yet
+10-bit addressing (UM10204 §3.1.11) is in the cores now. A 10-bit
+`start()` sends the whole header itself, including the Sr and read header
+for a read. The target asks its model about the first byte through a new
+`i2c_target_if` method, `addressed_10b_hi()`, and remembers an ACKed write
+header for the read header that follows. The monitor core flags the
+header's second byte as an address byte. The first `rand_traffic` run with
+10-bit segments showed one wrong assumption in the bench: a 10-bit read
+NACKed before its read header puts only a write header on the bus, so the
+monitor sees a write. `same_bus` now compares only A9:A8 for a NACKed
+10-bit address. Formal invariant 9 checks the 10-bit address phases, with
+cover goals for a 10-bit write and read header.
 
-- **10-bit addressing**: not implemented by the v1 cores.
+## Not covered yet
 - **Arbitration at the UVM level**: the kit's `i2c_arb_tb` covers it, but
   the bench has one controller, and the kit monitor core does not report
   arbitration loss.

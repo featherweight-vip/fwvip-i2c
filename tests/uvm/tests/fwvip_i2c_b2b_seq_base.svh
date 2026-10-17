@@ -33,6 +33,12 @@ class fwvip_i2c_b2b_seq_base extends fwvip_i2c_ctrl_seq_base;
         return a;
     endfunction
 
+    function bit [9:0] other_addr10();
+        bit [9:0] a;
+        do a = rand_addr10(); while (a == TGT_ADDR10);
+        return a;
+    endfunction
+
     // Write `data` starting at memory offset `off` (the pointer byte first).
     task mem_write(output fwvip_i2c_xact t, input bit [7:0] off, input bit [7:0] data[]);
         bit [7:0] b[] = new[data.size() + 1];

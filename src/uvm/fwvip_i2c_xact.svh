@@ -20,19 +20,24 @@ class fwvip_i2c_xact extends uvm_sequence_item;
         super.new(name);
     endfunction
 
-    function fwvip_i2c_segment add_write(bit [6:0] addr, bit [7:0] data[]);
+    // addr_10b=1: addr is a 10-bit address.
+    function fwvip_i2c_segment add_write(bit [9:0] addr, bit [7:0] data[],
+                                         bit addr_10b = 1'b0);
         fwvip_i2c_segment s = fwvip_i2c_segment::type_id::create("wr");
-        s.addr = addr;
-        s.read = 1'b0;
+        s.addr     = addr;
+        s.addr_10b = addr_10b;
+        s.read     = 1'b0;
         s.data = data;
         seg.push_back(s);
         return s;
     endfunction
 
-    function fwvip_i2c_segment add_read(bit [6:0] addr, int unsigned n);
+    function fwvip_i2c_segment add_read(bit [9:0] addr, int unsigned n,
+                                        bit addr_10b = 1'b0);
         fwvip_i2c_segment s = fwvip_i2c_segment::type_id::create("rd");
-        s.addr = addr;
-        s.read = 1'b1;
+        s.addr     = addr;
+        s.addr_10b = addr_10b;
+        s.read     = 1'b1;
         s.data = new[n];
         seg.push_back(s);
         return s;

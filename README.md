@@ -6,7 +6,7 @@
 `fwvip-chi`/`fw-proto-chi` and `fwvip-wb`/`fw-proto-wb`.
 
 **Status:** controller, target and monitor agents, an EEPROM-style memory
-responder and a back-to-back UVM bench (seven cases, all passing),
+responder and a back-to-back UVM bench (eight cases, all passing),
 including repeated START. 7-bit addressing only.
 
 ```sh

@@ -43,6 +43,13 @@ class fwvip_i2c_ctrl_driver extends uvm_driver #(fwvip_i2c_xact);
                 `uvm_fatal(get_type_name(), $sformatf(
                     "segment %0d is a read of 0 bytes; an I2C read moves at least one: %s",
                     i, t.convert2string()))
+        // A 7-bit address 1111 0xx is the 10-bit prefix (UM10204 Table 4):
+        // on the bus its address byte is a 10-bit header.
+        foreach (t.seg[i])
+            if (!t.seg[i].addr_10b && t.seg[i].addr[6:2] == 5'b11110)
+                `uvm_fatal(get_type_name(), $sformatf(
+                    "segment %0d has 7-bit address 0x%02h, the reserved 10-bit prefix; set addr_10b for a 10-bit address: %s",
+                    i, t.seg[i].addr[6:0], t.convert2string()))
         t.status    = FWVIP_I2C_OK;
         t.nack_seg  = -1;
         t.nack_byte = -1;

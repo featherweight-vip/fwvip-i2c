@@ -16,9 +16,9 @@
 #* Exit status is nonzero iff any check failed (or bootstrap did).
 #*
 #* Environment:
-#*   CI_CHECKS    the dfm roots to run, space-separated. The push set is the
-#*                default; the nightly workflow passes the nightly set
-#*                (docs/plan/test-plan.md, "Regressions")
+#*   CI_CHECKS    the dfm roots to run, space-separated. The push set,
+#*                "smoke docs", is the default; the workflows' nightly run
+#*                passes "tests docs" (every case, docs/verification.md)
 #*   CI_DEP_SET   ivpm dep-set to fetch (default: dev)
 #*   CI_REPORTS   where the reports are collected (default: ci-reports)
 #*   IVPM_CACHE   ivpm's package cache (default: ~/.cache/ivpm, the path the
@@ -122,6 +122,9 @@ copy_first "rundir/*/lint.json"      "$reports/lint-rtl/"
 copy_first "rundir/*.smoke/ctrf.json" "$reports/ctrf/smoke.json"
 copy_first "rundir/*.smoke/junit.xml" "$reports/smoke/"
 copy_first "rundir/*.smoke/report.json" "$reports/smoke/suite.json"
+copy_first "rundir/*.tests/ctrf.json" "$reports/ctrf/tests.json"
+copy_first "rundir/*.tests/junit.xml" "$reports/tests/"
+copy_first "rundir/*.tests/report.json" "$reports/tests/suite.json"
 
 verdict() { [ "${status[$1]}" = "0" ] && echo "pass" || echo "FAIL (status ${status[$1]})"; }
 

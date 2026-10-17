@@ -69,7 +69,8 @@ Extend `fwvip_i2c_ctrl_seq_base`: `write(t, addr7, data[])`,
 `t.add_read(...)`; each segment after the first starts with an Sr).
 Ready-made: `fwvip_i2c_write_seq`, `fwvip_i2c_read_seq`,
 `fwvip_i2c_rand_seq` (`n_xacts`, `max_bytes`, `read_pct`, `sr_pct`,
-`max_segs`, `addrs`). `rand_addr7()` avoids the
+`max_segs`, `addrs`, `addr10_pct`, `addrs10`). The helpers take a
+trailing `addr_10b` for a 10-bit address. `rand_addr7()` avoids the
 reserved ranges (`fwvip_i2c_addr7_reserved` in `fwvip_i2c_xtor_pkg`).
 
 On a NACK the driver issues STOP; on arbitration loss it does not (the
@@ -93,10 +94,10 @@ write byte; `init_byte(off)` is what unwritten bytes read as.
 ## Example and commands
 
 `tests/uvm/` is a runnable back-to-back bench (env with a bus + data
-scoreboard, seven cases):
+scoreboard, eight cases):
 
 ```sh
-dfm run tests                     # smoke addr_nack data_nack stretch repeated_start rand_traffic mon_teeth
+dfm run tests                     # smoke addr_nack data_nack stretch repeated_start addr_10b rand_traffic mon_teeth
 dfm run tests --tests stretch
 dfm run smoke
 ```
@@ -106,8 +107,10 @@ Plusargs: `+fwvip_i2c_mon_trace` (each reconstructed transaction),
 
 ## Pitfalls
 
-- **10-bit addressing is not implemented** by the v1 cores; keep
-  `addr_10b = 0`.
+- **10-bit addresses need `addr10_en` on the target config** (and
+  `addr10`); without it the target NACKs every 10-bit header. A 10-bit
+  read is one segment: the controller sends the write header, Sr and read
+  header itself, so it needs no separate empty write before it.
 - **No responder running ⇒ a hung bus.** An addressed target waits for
   its responder with SCL held low. Start one before stimulus; set a UVM
   timeout.
@@ -115,6 +118,9 @@ Plusargs: `+fwvip_i2c_mon_trace` (each reconstructed transaction),
   owns SDA until a byte is NACKed, so the driver rejects
   `add_read(addr, 0)` with a fatal error. Callers of the kit's
   `i2c_controller_if` must follow the same contract (see its header).
+- **A 7-bit address `1111 0xx` is fatal in the driver.** It is the 10-bit
+  prefix, so its address byte is a 10-bit header on the bus. Use
+  `addr_10b = 1` for a 10-bit address.
 - **Bus speed is set on the controller wrapper**:
   `i2c_controller_xtor #(.T_LOW(..), .T_HIGH(..), ...)`, counted in core
   clocks, with defaults of 4/4/2/2/2/2. Any value down to 1 works.
