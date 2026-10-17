@@ -212,7 +212,9 @@ UM10204 §3.1.10/3.1.11), `ACK_PHASE`, `REP_START`, `STOP`. Timing parameters
 runtime `cfg_*` inputs sampled per transaction (same "held runtime
 configuration" pattern as `uart_tx_xtor_core`'s `cfg_*` ports), so one core
 instance covers Standard/Fast/Fast-plus by reprogramming divisors; Hs-mode and
-Ultra-fast are flagged as open issues (§8).
+Ultra-fast are flagged as open issues (§8). *(As built: the `T_*` values are
+module parameters counted in ticks, and one runtime scalar, `prescale`, set
+through `set_prescale()`, sets the tick length. See reference.md.)*
 
 ### Target core (`i2c_target_xtor_core.sv`)
 Passively samples SCL/SDA to detect START/Sr/STOP (edge-on-SDA-while-SCL-high

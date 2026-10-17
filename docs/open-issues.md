@@ -4,9 +4,12 @@
 
 What the current kit and VIP do not do, and where each limitation shows up:
 
-- **Bus timing is fixed per instance.** The controller's `T_*` parameters
-  set it; the runtime `cfg_*` timing of design.md §5 is not implemented
-  (see {doc}`reference`).
+- **Bus timing has a fixed shape per instance.** The controller's `T_*`
+  parameters set the length of each phase, in ticks. The rate is set at
+  runtime with `set_prescale()` (one tick = prescale+1 clocks), so the
+  same instance can run Sm and Fm, but the ratio between the phases
+  cannot change at runtime. Separate runtime `cfg_*` values per phase, as
+  design.md §5 proposed, are not implemented (see {doc}`reference`).
 - **Arbitration loss is not reported by the monitor core**, so the monitor
   agent cannot publish `ARB_LOST`. The UVM bench has one controller; only
   the kit's `i2c_arb_tb` exercises arbitration. {doc}`arbitration` proposes

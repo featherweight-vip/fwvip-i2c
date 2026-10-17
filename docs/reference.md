@@ -106,9 +106,14 @@ From `fw-proto-i2c` (`fw.proto.i2c.xtor-sv`):
 
 The register macros bind each wrapper's `u_if`.
 
-`i2c_controller_xtor` sets the bus timing with parameters, counted in core
-clocks: `T_LOW` (4), `T_HIGH` (4), and `T_HD_STA`, `T_SU_STA`, `T_SU_STO`,
-`T_BUF` (2 each). Every value down to 1 works: the target and monitor
-cores follow SCL low or high phases as short as one of their clocks. The
-runtime `cfg_*` timing inputs proposed in design.md §5 are not
-implemented, so the timing is fixed per instance.
+`i2c_controller_xtor` sets the bus timing with parameters, counted in
+ticks: `T_LOW` (4), `T_HIGH` (4), and `T_HD_STA`, `T_SU_STA`, `T_SU_STO`,
+`T_BUF` (2 each). A tick is prescale+1 core clocks. `prescale` is a runtime
+setting, made through the controller API's `set_prescale(bit [15:0])`
+(the agent config forwards it). Its default is 0, which makes a tick one
+clock. Each phase lasts exactly `T_*` × (prescale+1) clocks. The SCL
+checks (stretch wait, clock synchronization, arbitration) still run on
+every clock. Set the prescale only between transactions. Every `T_*` value
+down to 1 works at prescale 0: the target and monitor cores follow SCL low
+or high phases as short as one of their clocks. Separate runtime values per
+phase (the `cfg_*` inputs proposed in design.md §5) are not implemented.

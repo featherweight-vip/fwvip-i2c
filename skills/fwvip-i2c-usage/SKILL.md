@@ -121,8 +121,10 @@ Plusargs: `+fwvip_i2c_mon_trace` (each reconstructed transaction),
 - **A 7-bit address `1111 0xx` is fatal in the driver.** It is the 10-bit
   prefix, so its address byte is a 10-bit header on the bus. Use
   `addr_10b = 1` for a 10-bit address.
-- **Bus speed is set on the controller wrapper**:
-  `i2c_controller_xtor #(.T_LOW(..), .T_HIGH(..), ...)`, counted in core
-  clocks, with defaults of 4/4/2/2/2/2. Any value down to 1 works.
+- **Bus speed**: the phase shape is set on the controller wrapper,
+  `i2c_controller_xtor #(.T_LOW(..), .T_HIGH(..), ...)`, in ticks, with
+  defaults of 4/4/2/2/2/2. The rate is set at runtime with
+  `cfg.set_prescale(p)` (one tick = p+1 clocks, default 0). Call it between
+  transactions. Any `T_*` value down to 1 works.
 - Don't rebuild the kit: transactors, bridges and role APIs are
   `fw-proto-i2c`'s.

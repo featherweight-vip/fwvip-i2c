@@ -25,6 +25,13 @@ class fwvip_i2c_ctrl_config extends uvm_object implements i2c_controller_if;
     virtual task stop();
         `uvm_fatal("FWVIP_I2C", "fwvip_i2c_ctrl_config: no transactor bound (set a fwvip_i2c_ctrl_config_p)")
     endtask
+
+    // Bus rate: the controller's T_* phases are counted in ticks of
+    // prescale+1 clocks (0, the default, is one clock per tick). Set it
+    // between transactions.
+    virtual function void set_prescale(bit [15:0] prescale);
+        `uvm_fatal("FWVIP_I2C", "fwvip_i2c_ctrl_config: no transactor bound (set a fwvip_i2c_ctrl_config_p)")
+    endfunction
 endclass
 
 // vif-aware specialization: holds the kit controller transactor's `u_if`
@@ -72,4 +79,9 @@ class fwvip_i2c_ctrl_config_p #(type vif_t = virtual i2c_controller_xtor_if)
         ensure();
         m_bridge.stop();
     endtask
+
+    virtual function void set_prescale(bit [15:0] prescale);
+        ensure();
+        m_bridge.set_prescale(prescale);
+    endfunction
 endclass
